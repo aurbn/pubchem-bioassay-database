@@ -1,6 +1,15 @@
-FROM bioconductor/devel_proteomics:latest
-MAINTAINER Tyler Backman <tyler.backman@email.ucr.edu>
-RUN printf "source(\"http://bioconductor.org/biocLite.R\")\nbiocLite(c(\"ape\",\"devtools\"))\ndevtools::install_github(\"TylerBackman/bioassayR\")\n" | R --slave
-RUN apt-get update && apt-get install -y hmmer
+FROM rocker/r-ver:4.1.2
+RUN apt-get update && apt-get install -y \
+    hmmer \
+    wget \
+    librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+RUN    R -e "install.packages('BiocManager')"\
+    && R -e "BiocManager::install(version = '3.14')" \
+    && R -e "BiocManager::install(c('ape','devtools'))" \
+    && R -e "install.packages('rsvg')"\ 
+    && R -e "install.packages('R.utils')"\ 
+    && R -e "BiocManager::install('ChemmineR')" \
+    && R -e "devtools::install_github('TylerBackman/bioassayR')" 
 ADD . /pubchem-bioassay-database
 RUN cd /pubchem-bioassay-database && make working/summarystats.txt
